@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app"></div>
+    <script src="../dist/vue.js"></script>
+    <script>
+        // console.log(Vue)
+        const vm = new Vue({
+            el:'#app',
+            //数据会被进行检测，相应数据变化，我们对数据操作可以更新视图
+            //对对象的所有属性，使用defineProperty进行重新定义 get和set
+            data(){
+                // console.log(this);//指代的是实例
+                return {
+                    msg:'zf',
+                    age:11,
+                    a:{
+                        a:112
+                    },
+                    arr:[
+                        1,2,3,
+                        {a:1}
+                    ]
+                }
+            }
+        })
+        console.log(vm)
+        vm._data.arr.push({b:2})
+        console.log(vm)
+        // function Person(){
+        //     this.name = '11'
+        // }
+        // let father = new Person();
+        // console.log(father.name);
+    </script>
+</body>
+</html>
