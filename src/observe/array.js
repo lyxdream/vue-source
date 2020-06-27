@@ -17,7 +17,7 @@ methods.forEach(method =>{   //函数劫持 AOP
     //于是就需要调用数组原来的方法，既函数劫持
     arrayMethods[method] = function(...args){
         //当用户调用数组的方法时 先执行我自己改造的逻辑 再执行数组默认的逻辑
-        const ob = this.__ob__;
+        const ob = this.__ob__; 
         console.log(ob)
         let result =  oldArrayMethods[method].apply(this,args);
         let inserted;
@@ -40,3 +40,4 @@ methods.forEach(method =>{   //函数劫持 AOP
 
     }
 })
+

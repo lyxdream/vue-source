@@ -4,12 +4,14 @@ import { arrayMethods } from './array'
    constructor(data){
       console.log(data)
     // 对数组索引进行拦截 性能差而且直接更改索引的方式并不多
+     // data.__ob__  = this;//可以在数据上获取__ob__这个属性 指代的是Observer的实例
+    //__ob__是一个响应式属性，对象数组都有
     Object.defineProperty(data,'__ob__',{
         enumerable:false,
         configurable:false,
         value:this
     })
-    // data._ob_  = this;//可以在数据上获取_ob_这个属性 指代的是Observer的实例
+  
     if(Array.isArray(data)){
         //vue 如何对数组进行处理？数组用的是重写数组的方法 函数劫持
         //改变的数组方法就可以监控到了 改写了数组的原型链
