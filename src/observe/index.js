@@ -2,7 +2,7 @@ import {isObject} from '../utils.js'
 import { arrayMethods } from './array'
  class Observer{
    constructor(data){
-      console.log(data)
+    //   console.log(data)
     // 对数组索引进行拦截 性能差而且直接更改索引的方式并不多
      // data.__ob__  = this;//可以在数据上获取__ob__这个属性 指代的是Observer的实例
     //__ob__是一个响应式属性，对象数组都有

@@ -18,13 +18,13 @@
     'push', 'pop', 'shift', 'unshift', 'sort', 'reverse', 'splice'];
     methods.forEach(method => {
       //函数劫持 AOP
-      console.log(method); // 这样就调用arrayMethods自身的方法，但是这样不会发生变化
+      // console.log(method)
+      // 这样就调用arrayMethods自身的方法，但是这样不会发生变化
       //于是就需要调用数组原来的方法，既函数劫持
-
       arrayMethods[method] = function (...args) {
         //当用户调用数组的方法时 先执行我自己改造的逻辑 再执行数组默认的逻辑
-        const ob = this.__ob__;
-        console.log(ob);
+        const ob = this.__ob__; // console.log(ob)
+
         let result = oldArrayMethods[method].apply(this, args);
         let inserted; //push unshift splice 都可以新增属性 （新增的属性可能是一个对象类型）
         //内部还对数组中引用类型也做了一次劫持
@@ -42,18 +42,18 @@
         }
 
         inserted && ob.observeArray(inserted); //观测数组中新增的每一项
+        // console.log('新增')
 
-        console.log('新增');
         return result;
       };
     });
 
     class Observer {
       constructor(data) {
-        console.log(data); // 对数组索引进行拦截 性能差而且直接更改索引的方式并不多
+        //   console.log(data)
+        // 对数组索引进行拦截 性能差而且直接更改索引的方式并不多
         // data.__ob__  = this;//可以在数据上获取__ob__这个属性 指代的是Observer的实例
         //__ob__是一个响应式属性，对象数组都有
-
         Object.defineProperty(data, '__ob__', {
           enumerable: false,
           configurable: false,
@@ -150,6 +150,118 @@
       observe(data);
     }
 
+    //字母a-zA-Z_  - .数字_ 小写字母大写字母 
+    const ncname = `[a-zA-Z_][\\-\\.0-9_a-zA-Z]*`; //标签名
+    //?:匹配不捕获 <aaa:aaa> 
+
+    const qnameCapture = `((?:${ncname}\\:)?${ncname})`;
+    const startTagOpen = new RegExp(`^<${qnameCapture}`); // 标签开头的正则 捕获的内容是标签名
+
+    const endTag = new RegExp(`^<\\/${qnameCapture}[^>]*>`); // 匹配标签结尾的 </div>
+    //<div aaa ="123" bb=123 cc='123
+
+    const attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/; // 匹配属性的
+
+    const startTagClose = /^\s*(\/?)>/; // 匹配标签结束的 >
+
+    function parseHTML(html) {
+      //根据 html 解析成树结构 <div id="app" style="color:red"><span>helloword {{msg}}</span></div>
+      function start(tagName, attrs) {
+        console.log(tagName, attrs);
+      }
+
+      function end(tagName) {
+        console.log(tagName);
+      }
+
+      function chars(text) {
+        console.log(text);
+      }
+
+      while (html) {
+        let textend = html.indexOf('<');
+
+        if (textend == 0) {
+          const startTagMatch = parseStartTag(); // console.log(startTagMatch,html)
+
+          if (startTagMatch) {
+            //开始标签
+            // console.log(startTagMatch,'开始')
+            start(startTagMatch.tagName, startTagMatch.attrs);
+          } //结束标签
+
+
+          const endTagMatch = html.match(endTag);
+
+          if (endTagMatch) {
+            // console.log(endTagMatch)
+            advance(endTagMatch[0].length);
+            end(endTagMatch[1]);
+          }
+        } //如果不是0说明是文本
+
+
+        let text;
+
+        if (textend > 0) {
+          text = html.substring(0, textend); //把文本内容进行截取
+          // console.log(text)
+
+          chars(text);
+        }
+
+        if (text) {
+          advance(text.length); //删除文本内容
+        }
+      }
+
+      function advance(n) {
+        html = html.substring(n);
+      }
+
+      function parseStartTag() {
+        const start = html.match(startTagOpen); //匹配<div>
+        // console.log(start)
+
+        if (start) {
+          const match = {
+            tagName: start[1],
+            //匹配标签名
+            attrs: []
+          };
+          advance(start[0].length); //截取开始标签后面的
+
+          let end, attr;
+
+          while (!(end = html.match(startTagClose)) && (attr = html.match(attribute))) {
+            advance(attr[0].length); //  console.log(attr)
+            //双引号是第三项 单引号是第四项 
+
+            match.attrs.push({
+              name: attr[1],
+              value: attr[3] || attr[4] || attr[5]
+            });
+          } // console.log(html)
+
+
+          if (end) {
+            advance(end[0].length);
+            return match;
+          }
+        }
+      }
+    }
+
+    function complieToFunctions(template) {
+      // console.log(template)
+      //实现模版编译的内容
+      let ast = parseHTML(template); //解析html
+      //模版编译原理
+      //1、将模版解析成AST语法树   (1)parser解析(正则)
+      //2、遍历AST标记静态树       （2）树遍历标记 markup
+      //3、使用AST生成渲染函数（render函数） codegen
+    }
+
     function initMixin(Vue) {
       Vue.prototype._init = function (options) {
         // console.log(options)
@@ -159,6 +271,40 @@
         //options.data props watch computed  //状态
 
         initState(vm); //初始化状态
+        //需要通过模版进行渲染
+
+        if (vm.$options.el) {
+          //用户传入来el属性
+          vm.$mount(vm.$options.el);
+        }
+      };
+
+      Vue.prototype.$mount = function (el) {
+        //可能是字符串 也可以传入一个dom对象
+        const vm = this;
+        el = document.querySelector(el); //获取el属性
+        //如果同时传入 template 和render 默认会采用render 抛弃template,如果都没传就使用id="app"中的模版
+        // console.log(el)
+
+        const opts = vm.$options;
+
+        if (!opts.render) {
+          let template = opts.template;
+
+          if (!template && el) {
+            //应该使用外部模版
+            // let div = document.createElement('div');
+            // div.appendChild(el);
+            // template = div.innerHTML;
+            template = el.outerHTML;
+          }
+
+          const render = complieToFunctions(template);
+          opts.render = render;
+        } //走到这里说明不需要编译了，因为用户传入的就是一个render函数
+
+
+        opts.render;
       };
     }
 

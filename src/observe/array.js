@@ -12,13 +12,13 @@ let methods = [  //这七个方法都可以改变原数组
     'splice'
 ]
 methods.forEach(method =>{   //函数劫持 AOP
-    console.log(method)
+    // console.log(method)
     // 这样就调用arrayMethods自身的方法，但是这样不会发生变化
     //于是就需要调用数组原来的方法，既函数劫持
     arrayMethods[method] = function(...args){
         //当用户调用数组的方法时 先执行我自己改造的逻辑 再执行数组默认的逻辑
         const ob = this.__ob__; 
-        console.log(ob)
+        // console.log(ob)
         let result =  oldArrayMethods[method].apply(this,args);
         let inserted;
         //push unshift splice 都可以新增属性 （新增的属性可能是一个对象类型）
@@ -35,7 +35,7 @@ methods.forEach(method =>{   //函数劫持 AOP
                 break;
         }
         inserted&&ob.observeArray(inserted);//观测数组中新增的每一项
-        console.log('新增')
+        // console.log('新增')
         return result;
 
     }
