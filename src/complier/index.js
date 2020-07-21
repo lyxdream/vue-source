@@ -10,5 +10,9 @@ export function complieToFunctions(template){
     //2、遍历AST标记静态树       （2）树遍历标记 markup
     //3、使用AST生成渲染函数（render函数） codegen
     
+
+
+
+    
 }
 
