@@ -11,17 +11,60 @@ const startTagClose = /^\s*(\/?)>/; // 匹配标签结束的 >
 // +?尽可能少取 {{a}} {{b}}
 const defaultTagRE = /\{\{((?:.|\r?\n)+?)\}\}/g//匹配动态变量
  
+// v2.0只能有一个根节点  必须是html元素
+//currentParent = div
+//stack = []
 export function parseHTML(html){
+    let root;//树根
+    let currentParent;//当前元素ast
+    let stack = [];//用来判断标签是否正常闭合 []解析器可以借助栈形结构
+    //利用常见的数据结构来解析标签
     //根据 html 解析成树结构 <div id="app" style="color:red"><span>helloword {{msg}}</span></div>
+   
+    function createASTElement(tagName,attrs){
+        return{
+            tag:tagName,
+            attrs:attrs, 
+            children:[],
+            parent:null,
+            type:1,//1元素节点  3 文本节点
+        }
+    }
 
-    function start(tagName,attrs){
-        console.log(tagName,attrs)
+    function start(tagName,attrs){  //开始标签  每次解析开始标签都会执行此方法
+        let element = createASTElement(tagName,attrs);
+        if(!root){
+            root = element; //只有第一次是根
+            // console.log(root)
+        }
+        // currentParent = JSON.parse(JSON.stringify(element));//保存当前标签
+        currentParent = element;//保存当前标签，当子级是文本标签的时候改变当前标签的children
+        stack.push(element)
+        console.log(stack)
+        // console.log(tagName,attrs)
     }
-    function end(tagName){
-        console.log(tagName)
+    function end(tagName){ //结束标签  确立父子关系
+        // console.log(tagName)
+       let element = stack.pop();//stack中最后一位出栈,并返回
+       if(tagName ==element.tag){  //判断当前闭合的标签名和栈中最后一位是否一致
+            let parent = stack[stack.length-1];//获取当前闭合元素父级
+            if(parent){
+                element.parent = parent;
+                stack[stack.length-1].children.push(element)
+            } 
+       }else{
+           console.log('标签闭合有误！')
+       }
     }
-    function chars(text){
-        console.log(text)
+    function chars(text){ //文本标签
+        // console.log(text)
+        text = text.replace(/\s/g,'');
+        if(text){
+            currentParent.children.push({    //push进当前文本标签的父级元素
+                type:3,
+                text
+            })
+        }
     }
     while(html){
         let textend = html.indexOf('<');
@@ -39,7 +82,6 @@ export function parseHTML(html){
                  // console.log(endTagMatch)
                 advance(endTagMatch[0].length);
                 end(endTagMatch[1])
-                
             }
            
         }
@@ -81,5 +123,5 @@ export function parseHTML(html){
             }
         }
     }
-
+    return root;
 }
