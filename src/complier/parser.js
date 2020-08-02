@@ -12,15 +12,14 @@ const startTagClose = /^\s*(\/?)>/; // 匹配标签结束的 >
 const defaultTagRE = /\{\{((?:.|\r?\n)+?)\}\}/g//匹配动态变量
  
 // v2.0只能有一个根节点  必须是html元素
-//currentParent = div
-//stack = []
+//currentParent = divAstElement
+//stack = [divAstElement]
 export function parseHTML(html){
     let root;//树根
     let currentParent;//当前元素ast
     let stack = [];//用来判断标签是否正常闭合 []解析器可以借助栈形结构
     //利用常见的数据结构来解析标签
     //根据 html 解析成树结构 <div id="app" style="color:red"><span>helloword {{msg}}</span></div>
-   
     function createASTElement(tagName,attrs){
         return{
             tag:tagName,
@@ -30,7 +29,6 @@ export function parseHTML(html){
             type:1,//1元素节点  3 文本节点
         }
     }
-
     function start(tagName,attrs){  //开始标签  每次解析开始标签都会执行此方法
         let element = createASTElement(tagName,attrs);
         if(!root){
@@ -40,17 +38,17 @@ export function parseHTML(html){
         // currentParent = JSON.parse(JSON.stringify(element));//保存当前标签
         currentParent = element;//保存当前标签，当子级是文本标签的时候改变当前标签的children
         stack.push(element)
-        console.log(stack)
         // console.log(tagName,attrs)
     }
     function end(tagName){ //结束标签  确立父子关系
         // console.log(tagName)
        let element = stack.pop();//stack中最后一位出栈,并返回
+    
        if(tagName ==element.tag){  //判断当前闭合的标签名和栈中最后一位是否一致
             let parent = stack[stack.length-1];//获取当前闭合元素父级
             if(parent){
                 element.parent = parent;
-                stack[stack.length-1].children.push(element)
+                parent.children.push(element)
             } 
        }else{
            console.log('标签闭合有误！')
@@ -79,7 +77,7 @@ export function parseHTML(html){
             //结束标签
             const endTagMatch = html.match(endTag);
             if(endTagMatch){
-                 // console.log(endTagMatch)
+                //  console.log(endTagMatch)
                 advance(endTagMatch[0].length);
                 end(endTagMatch[1])
             }
