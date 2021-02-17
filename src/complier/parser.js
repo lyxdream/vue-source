@@ -68,10 +68,8 @@ export function parseHTML(html){
         let textend = html.indexOf('<');
         if(textend==0){
             const startTagMatch = parseStartTag();
-            // console.log(startTagMatch,html)
             if(startTagMatch){
                 //开始标签
-                 // console.log(startTagMatch,'开始')
                 start(startTagMatch.tagName,startTagMatch.attrs)   
             }
             //结束标签

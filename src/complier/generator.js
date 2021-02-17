@@ -21,6 +21,7 @@ function genProps(attrs){
     // 截取多余的一个逗号,并加上{}
     // console.log(`{${str.slice(0,-1)}}`)
     return `{${str.slice(0,-1)}}`
+
 }
 function genNode(node){
     if(node.type===1){

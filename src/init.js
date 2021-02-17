@@ -8,7 +8,6 @@ export function initMixin(Vue){
         vm.$options = options;//用户传入的参数
         //options.data props watch computed  //状态
         initState(vm);//初始化状态
-
         //需要通过模版进行渲染
         if(vm.$options.el){  //用户传入来el属性
             vm.$mount(vm.$options.el)
